@@ -1,0 +1,114 @@
+name: Deploy Quarkus from master 🖥️
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+jobs:
+  get-properties:
+    name: ✏️ Retrieve application properties ✏️
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout properties ⬇️
+        uses: actions/checkout@v4
+        with:
+          repository: fabricalo-web/ms-properties
+          token: ${{ secrets.REPO_TOKEN }}
+          sparse-checkout: properties/report-ms/prd/
+          sparse-checkout-cone-mode: false
+      - name: ⬆️ Upload properties file ⬆️
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-properties
+          path: properties/report-ms/prd-q/
+
+  unit-tests:
+    name: 📄 Unit tests 📄
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repository ⬇️
+        uses: actions/checkout@v4
+      - name: 💽 Set up JDK 21 💽
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: 🔓 Grant execution permits to mvnw 🔓
+        run: chmod +x mvnw
+      - name: 📄 Execute unit tests 📄
+        run: ./mvnw test
+
+  build-image:
+    name: 🛠️ Build Docker image 🛠️
+    needs: [get-properties, unit-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Checkout repository ⬇️
+        uses: actions/checkout@v4
+      - name: ⬇️ Download properties file ⬇️
+        uses: actions/download-artifact@v4
+        with:
+          name: report-properties
+      - name: 💽 Set up JDK 21 💽
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: 💽 Set up GraalVM for Native Build 💽
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          components: 'native-image'
+          github-token: ${{ secrets.REPO_TOKEN }}
+      - name: ✏️ Move properties file ✏️
+        run: mv application.yml src/main/resources/application.yml
+      - name: 📦 Package image 📦
+        run: ./mvnw package
+      - name: 🛠️ Build Docker image 🛠️
+        run: docker build -f src/main/docker/Dockerfile.jvm -t fabricaloweb/report-generator-ms .
+      - name: ✔️ Login to registry ✔️
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      - name: ⬆️ Push image to registry ⬆️
+        run: docker push fabricaloweb/report-generator-ms:latest
+
+  deploy-image:
+    name: 🖥️ Deploy generated Docker image 🖥️
+    needs: build-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: ✔️ Login to registry ✔️
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      - name: 💀 Kill and erase previous docker instance and image 💀
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PPK }}
+          script: |
+            cd /opt/docker-compose/report-generator-ms
+            sudo docker compose down
+            sudo docker rm fabricaloweb/report-generator-ms
+            sudo docker rmi fabricaloweb/report-generator-ms
+      - name: ⬇️ Pull docker image ⬇️
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PPK }}
+          script: sudo docker pull fabricaloweb/report-generator-ms:latest
+      - name: 🚀 Deploy new Docker instance 🚀
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PPK }}
+          script: |
+            cd /opt/docker-compose/report-generator-ms/prd
+            sudo docker compose up -d
