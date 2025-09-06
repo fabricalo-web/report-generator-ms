@@ -110,5 +110,5 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_PPK }}
           script: |
-            cd /opt/docker-compose/report-generator-ms/prd
+            cd /opt/docker-compose/report-generator-ms
             sudo docker compose up -d
