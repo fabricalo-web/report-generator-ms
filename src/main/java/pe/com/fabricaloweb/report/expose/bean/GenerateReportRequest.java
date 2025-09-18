@@ -17,6 +17,7 @@ public record GenerateReportRequest(
     String projectName,
     String templateName,
     Map<String, Object> data,
-    String filename
+    String filename,
+    FileType type
 ) {
 }
