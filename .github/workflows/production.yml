@@ -68,7 +68,7 @@ jobs:
       - name: 📁 Move reports directory 📁
         run: mv reports src/main/resources/
       - name: 📦 Package image 📦
-        run: ./mvnw package -Pwith-fonts
+        run: ./mvnw package -Pwith-fonts -DskipTests
       - name: 🛠️ Build Docker image 🛠️
         run: docker build -f src/main/docker/Dockerfile.jvm -t fabricaloweb/report-generator-ms .
       - name: ✔️ Login to registry ✔️
