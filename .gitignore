@@ -44,7 +44,4 @@ nb-configuration.xml
 # TLS Certificates
 .certs/
 src/main/resources/application.yml
-src/main/resources/fonts.jar
-src/main/resources/fonts
-src/main/resources/images
 src/main/resources/reports
