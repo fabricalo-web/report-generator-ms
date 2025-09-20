@@ -62,13 +62,6 @@
             <version>0.4</version>
         </dependency>
         <dependency>
-            <groupId>local.jasperFont</groupId>
-            <artifactId>local.jasperFont</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/src/main/resources/fonts.jar</systemPath>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.34</version>
@@ -155,6 +148,21 @@
                 <skipITs>false</skipITs>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
             </properties>
+        </profile>
+        <profile>
+            <id>with-fonts</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>local.jasperFont</groupId>
+                    <artifactId>local.jasperFont</artifactId>
+                    <version>1.0</version>
+                    <scope>system</scope>
+                    <systemPath>${basedir}/src/main/resources/fonts.jar</systemPath>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 </project>
