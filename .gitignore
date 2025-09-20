@@ -44,3 +44,4 @@ nb-configuration.xml
 # TLS Certificates
 .certs/
 src/main/resources/application.yml
+src/main/resources/reports
