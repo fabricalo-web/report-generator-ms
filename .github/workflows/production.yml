@@ -67,6 +67,12 @@ jobs:
         run: mv application.yml src/main/resources/application.yml
       - name: 📁 Move reports directory 📁
         run: mv reports src/main/resources/
+      - name: 📁 Move images directory 📁
+        run: mv images src/main/resources/
+      - name: 📁 Move fonts directory 📁
+        run: mv fonts src/main/resources/
+      - name: ☕ Move fonts.jar file ☕
+        run: mv fonts.jar src/main/resources/
       - name: 📦 Package image 📦
         run: ./mvnw package -Pwith-fonts -DskipTests
       - name: 🛠️ Build Docker image 🛠️
