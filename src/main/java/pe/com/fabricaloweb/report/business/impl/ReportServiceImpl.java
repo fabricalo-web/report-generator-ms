@@ -51,6 +51,11 @@ public class ReportServiceImpl implements ReportService {
   private static final String CONTENT_DISPOSITION_KEY = "Content-Disposition";
 
   /**
+   * Clave para {@code Content-Length}.
+   */
+  private static final String CONTENT_LENGTH_KEY = "Content-Length";
+
+  /**
    * Valor para {@code Content-Disposition}.
    */
   private static final String CONTENT_DISPOSITION_VALUE = "attachment; filename=%s";
@@ -122,6 +127,7 @@ public class ReportServiceImpl implements ReportService {
     return Response.ok(file)
         .type(MediaType.APPLICATION_OCTET_STREAM)
         .header(CONTENT_DISPOSITION_KEY, CONTENT_DISPOSITION_VALUE.formatted(filename))
+        .header(CONTENT_LENGTH_KEY, file.length)
         .build();
   }
 
